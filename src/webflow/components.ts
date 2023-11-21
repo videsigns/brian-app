@@ -12,8 +12,9 @@ export const extractQuestions = (componentCode: any) => {
 
       if (formlyAttrPresent && formlyAttrPresent.length > 0) {
         const children = node.children;
-        const question = traverseComponent(children, componentObject);
+        const question = traverseFindFormLabels(children, componentObject);
         const id = node._id;
+        const childId = children[0];
         const radioChoices = traverseFindRadioComponent(
           children,
           componentObject
@@ -126,9 +127,18 @@ const traverseFindRadioComponent = (
   const radioNodes = childNodes.filter(
     (node) => node.type === "FormRadioInput"
   );
+
+  const radioNodesLabels = childNodes.filter(
+    (node) => node.type === "FormInlineLabel"
+  );
+
   radioValues.push(
-    ...radioNodes.flatMap((node) => {
-      return { text: node.data.attr.value, id: node._id };
+    ...radioNodes.flatMap((node, index) => {
+      const text = traverseComponent(
+        radioNodesLabels[index].children[0],
+        componentObject
+      );
+      return { text, id: node._id };
     })
   );
 
@@ -139,6 +149,35 @@ const traverseFindRadioComponent = (
     componentObject,
     radioValues
   );
+};
+
+const traverseFindFormLabels = (
+  childrenIds: string,
+  componentObject: any,
+  radioValues = []
+) => {
+  if (childrenIds.length === 0) return radioValues;
+
+  // find node ids
+  const childNodes = componentObject.payload.nodes.filter((node: any) =>
+    childrenIds.includes(node._id)
+  );
+  if (childNodes.length === 0) {
+    return radioValues;
+  }
+  // find radio label nodes
+  const radioNodes = childNodes.filter(
+    (node) => node.type === "FormBlockLabel"
+  );
+  radioValues.push(
+    ...radioNodes.flatMap((node) => {
+      return getWFTextGivenIds(node.children, componentObject.payload.nodes);
+    })
+  );
+
+  const newChildrenIds = childNodes.flatMap((childNode) => childNode.children);
+
+  return traverseFindFormLabels(newChildrenIds, componentObject, radioValues);
 };
 
 export const transverseDOM = (dom: DOMElement, elements = []) => {
@@ -155,4 +194,24 @@ export const transverseDOM = (dom: DOMElement, elements = []) => {
 
 export const getWFElementById = async (id: string, allElements: any[]) => {
   return allElements.find((d) => d.id === id);
+};
+
+export const getWFChildElementById = async (id: string, allElements: any[]) => {
+  const parent = allElements.find((d) => d.id === id);
+  const child = parent.getChildren()[0];
+  return child;
+};
+
+const getWFTextGivenIds = (ids: string, allElements: any[]) => {
+  let nodetext = "";
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+
+    const text = allElements.find((d) => d._id === id);
+    if (text && text.v) {
+      nodetext += text.v;
+    }
+  }
+
+  return nodetext;
 };

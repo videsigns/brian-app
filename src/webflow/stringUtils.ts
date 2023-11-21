@@ -31,7 +31,7 @@ export const alternateDirections = (length) => {
   const result = [];
 
   for (let i = 0; i < length; i++) {
-    result.push(i % 2 === 0 ? "east" : "west");
+    result.push(i % 2 === 0 ? "west" : "east");
   }
 
   return result;

@@ -5,7 +5,10 @@
     generateRandomString,
   } from "../webflow/stringUtils";
   import Node from "./MyNode.svelte";
-  import { getWFElementById } from "../webflow/components";
+  import {
+    getWFChildElementById,
+    getWFElementById,
+  } from "../webflow/components";
 
   export let questions: any[];
   export let allElements: any[];
@@ -46,11 +49,22 @@
       node_origin_id = extractSubstring(sourceAnchor.id);
     }
 
-    const wfDesinationNode = await getWFElementById(
-      node_destination_id,
-      allElements
-    );
-    const wfOriginNode = await getWFElementById(node_origin_id, allElements);
+    let wfDesinationNode;
+    let wfOriginNode;
+
+    if (isRadioChoice) {
+      wfDesinationNode = await getWFChildElementById(
+        node_destination_id,
+        allElements
+      );
+      wfOriginNode = await getWFElementById(node_origin_id, allElements);
+    } else {
+      wfDesinationNode = await getWFChildElementById(
+        node_destination_id,
+        allElements
+      );
+      wfOriginNode = await getWFChildElementById(node_origin_id, allElements);
+    }
 
     const isAttributed = wfDesinationNode.getCustomAttribute("data-answer");
 
@@ -67,7 +81,7 @@
     } else {
       wfDesinationNode.setCustomAttribute(
         "data-answer",
-        String(node_origin_index)
+        String(node_destination_index)
       );
       await wfDesinationNode.save();
 

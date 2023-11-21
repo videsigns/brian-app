@@ -18,7 +18,7 @@
 <Node {id} {position} {label} borderWidth={1} inputs={firstNodeinput} TD={true}>
   {#if index !== 0}
     <div class="anchor">
-      <Anchor multiple={false} direction="north">
+      <Anchor multiple={true} direction="north">
         <Edge slot="edge" />
       </Anchor>
     </div>
@@ -27,6 +27,11 @@
   <div class="node-input">
     <h4>{label}</h4>
   </div>
+  {#if choices.length > 0}
+    <div class="node-input-choices">
+      <p>{choices.map(({ text }) => text).join(" | ")}</p>
+    </div>
+  {/if}
 
   {#if choices.length === 0}
     <div class="anchor">
@@ -61,6 +66,15 @@
     justify-content: center;
     display: flex;
   }
+  .node-input-choices {
+    background-color: black;
+    width: 350px;
+    height: 50px;
+    align-content: center;
+    justify-content: center;
+    display: flex;
+  }
+
   .anchor {
     margin-left: 170px;
   }
@@ -68,8 +82,8 @@
   .anchors-holder {
     display: flex;
     flex-direction: row;
-    margin-left: 160px;
     gap: 10px;
+    justify-content: center;
   }
 
   .anchors-holder .anchor {
